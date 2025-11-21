@@ -257,6 +257,37 @@ var GameBody = /** @class */ (function (_super) {
         this.ticketController.gainTicket(notif.args.player);
         this.playerController.adjustTickets(notif.args.player, 1);
     };
+    GameBody.prototype.notif_gainBetterColorToken = function (notif) {
+        var playerId = notif.args.player.id;
+        
+        // 1. Find all comic cards on this player's mat
+        // We look for both standard comics and rip-offs
+        var playerComics = dojo.query("#aoc-player-area-" + playerId + " .aoc-comic-card, #aoc-player-area-" + playerId + " .aoc-ripoff-card");
+        
+        if (playerComics.length > 0) {
+            // We assume the token goes on the most recently printed comic (the last one in the list)
+            var lastComic = playerComics[playerComics.length - 1];
+            
+            // 2. Create the Token HTML
+            // We assume the "Token Bank" logic from the CSS
+            var tokenHtml = '<div id="better-color-' + notif.args.miniComicId + '" class="aoc-token-better-color"></div>';
+            
+            // 3. Place it on the card
+            // Note: If the card has a .aoc-improve-token-container, we should ideally place it in there if you want stacking.
+            // But placing it directly on the card works with the CSS "absolute" positioning too.
+            dojo.place(tokenHtml, lastComic);
+            
+            // 4. Animation (Pulse effect)
+            dojo.animateProperty({
+                node: "better-color-" + notif.args.miniComicId,
+                properties: { transform: { start: 'scale(2)', end: 'scale(1)' } },
+                duration: 500
+            }).play();
+
+            // 5. Tooltip
+            this.addTooltip("better-color-" + notif.args.miniComicId, _("Better Colors: +2 VP at game end"), "");
+        }
+    };
     GameBody.prototype.notif_hireCreative = function (notif) {
         this.cardController.slideCardToPlayerHand(notif.args.card);
         this.playerController.adjustHand(notif.args.player, 1);
