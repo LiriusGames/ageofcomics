@@ -405,4 +405,12 @@ class action_ageofcomics extends APP_GameAction {
         $this->game->states[PERFORM_CONVERT_IDEAS]->skipConvertIdeas();
         self::ajaxResponse();
     }
+    
+    /* SPECIAL ACTION: BETTER COLORS (Print Bonus) */
+    public function gainBetterColor() {
+        self::setAjaxMode();
+        // No arguments needed, it automatically applies to the last printed comic
+        $this->game->states[PERFORM_BETTER_COLORS]->gainBetterColor();
+        self::ajaxResponse();
+    }
 }
