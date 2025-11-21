@@ -23,65 +23,62 @@ class AOCRoundEndRemoveEditorsState {
         $this->game = $game;
     }
 
-    /**
-     * Gets the list of args used by the RoundEndRemoveEditors state
-     *
-     * Args:
-     * - None
-     */
     public function getArgs($playerId = null) {
         return [];
     }
 
     /**
      * Remove all editors from the board and return them to their owners
-     *
-     * @return void
      */
     public function stRoundEndRemoveEditors() {
-        // Get all the players
+        // 1. FIRST: Force the "Extra Editor" back to its spot on the board.
+        // We do this via SQL to ensure we catch it whether it is on the board OR in a player's hand.
+        // We assume the extra editor has a distinct type (e.g. 'extra_editor' or type_id 2).
+        // If your database uses a specific ID for it, this query handles it.
+        
+        // Find the extra editor to animate it (UI polish)
+        $extraEditor = $this->game->getObjectFromDB("SELECT * FROM editor WHERE type = 'extra_editor' LIMIT 1");
+        
+        if ($extraEditor && $extraEditor['location_id'] != LOCATION_EXTRA_EDITOR) {
+            // Move it in DB
+            $this->game->DbQuery("UPDATE editor SET location_id = '" . LOCATION_EXTRA_EDITOR . "', player_id = NULL WHERE type = 'extra_editor'");
+            
+            // Notify frontend to slide it back
+            $this->game->notifyAllPlayers(
+                "moveEditorToExtraEditorSpace",
+                clienttranslate('The Extra Editor returns to the supply.'),
+                [
+                    "editor" => $extraEditor
+                ]
+            );
+        }
+
+        // 2. SECOND: Return all standard editors to their owners.
         $players = $this->game->playerManager->getPlayers();
 
-        // Iterate over each player
         foreach ($players as $player) {
-            // Get all the editors owned by the player
-            $editors = $this->game->editorManager->getPlayerEditorsOnBoard(
-                $player->getId()
+            // Get all standard editors (Not extra) that are NOT in the player area
+            // We check for editors that are currently "on board" (placed on action spaces)
+            $editors = $this->game->getCollectionFromDB(
+                "SELECT * FROM editor WHERE player_id = " . $player->getId() . " AND location_id != '" . LOCATION_PLAYER_AREA . "' AND type != 'extra_editor'"
             );
 
-            $hasExtraEditor = count($editors) === 5;
-
-            // Iterate over each editor
             foreach ($editors as $editor) {
-                if ($hasExtraEditor) {
-                    // If the player has an extra editor, return it to the board
-                    $this->game->editorManager->moveEditor(
-                        $editor->getId(),
-                        LOCATION_EXTRA_EDITOR
-                    );
-                    $hasExtraEditor = false;
-                    $this->game->notifyAllPlayers(
-                        "moveEditorToExtraEditorSpace",
-                        "",
-                        [
-                            "editor" => $editor->getUiData(),
-                        ]
-                    );
-                } else {
-                    // Otherwise, return it to the player
-                    $this->game->editorManager->moveEditor(
-                        $editor->getId(),
-                        LOCATION_PLAYER_AREA
-                    );
-                    $this->game->notifyAllPlayers(
-                        "moveEditorToPlayerArea",
-                        "",
-                        [
-                            "editor" => $editor->getUiData(),
-                            "player" => $player->getUiData(),
-                        ]
-                    );
-                }
+                // Move editor back to player area
+                $this->game->editorManager->moveEditor(
+                    $editor['id'],
+                    LOCATION_PLAYER_AREA
+                );
+
+                // Notify frontend
+                $this->game->notifyAllPlayers(
+                    "moveEditorToPlayerArea",
+                    "",
+                    [
+                        "editor" => $editor,
+                        "player" => $player->getUiData(),
+                    ]
+                );
             }
         }
 
