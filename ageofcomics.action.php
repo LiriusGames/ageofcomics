@@ -332,4 +332,77 @@ class action_ageofcomics extends APP_GameAction {
 
         self::ajaxResponse();
     }
+
+    /* SPECIAL ACTION: HYPE (Develop Upgrade) */
+    public function hypeComic() {
+        self::setAjaxMode();
+        $cardId = self::getArg("cardId", AT_posint, true);
+        $this->game->states[PERFORM_HYPE]->hypeComic($cardId);
+        self::ajaxResponse();
+    }
+
+    public function skipHype() {
+        self::setAjaxMode();
+        $this->game->states[PERFORM_HYPE]->skipHype();
+        self::ajaxResponse();
+    }
+
+    /* SPECIAL ACTION: MARKETING (Royalties Upgrade) */
+    public function payMarketing() {
+        self::setAjaxMode();
+        // Amount is 2, 5, or 9. comicId is where the fans go.
+        $amount = self::getArg("amount", AT_posint, true); 
+        $comicId = self::getArg("comicId", AT_posint, true);
+        $this->game->states[PERFORM_MARKETING]->payMarketing($amount, $comicId);
+        self::ajaxResponse();
+    }
+
+    public function skipMarketing() {
+        self::setAjaxMode();
+        $this->game->states[PERFORM_MARKETING]->skipMarketing();
+        self::ajaxResponse();
+    }
+
+    /* SPECIAL ACTION: EXTRA EDITOR (Sales Upgrade) */
+    public function gainExtraEditor() {
+        self::setAjaxMode();
+        $this->game->states[PERFORM_EXTRA_EDITOR]->gainExtraEditor();
+        self::ajaxResponse();
+    }
+
+    /* SPECIAL ACTION: REASSIGN (Hire Upgrade) */
+    public function reassignCreatives() {
+        self::setAjaxMode();
+        // This usually requires swapping a card in hand with one on the mat
+        $handCardId = self::getArg("handCardId", AT_posint, true);
+        $matCardId = self::getArg("matCardId", AT_posint, true);
+        $this->game->states[PERFORM_REASSIGN]->reassignCreatives($handCardId, $matCardId);
+        self::ajaxResponse();
+    }
+
+    public function skipReassign() {
+        self::setAjaxMode();
+        $this->game->states[PERFORM_REASSIGN]->skipReassign();
+        self::ajaxResponse();
+    }
+
+    /* SPECIAL ACTION: CONVERT IDEAS (Ideas Upgrade) */
+    public function convertIdeas() {
+        self::setAjaxMode();
+        // List of Idea Types and which Comic IDs they go to
+        $ideasToConvert = self::getArg("ideasToConvert", AT_numberlist, true); 
+        $targetComicIds = self::getArg("targetComicIds", AT_numberlist, true);
+        
+        $this->game->states[PERFORM_CONVERT_IDEAS]->convertIdeas(
+            explode(",", $ideasToConvert), 
+            explode(",", $targetComicIds)
+        );
+        self::ajaxResponse();
+    }
+
+    public function skipConvertIdeas() {
+        self::setAjaxMode();
+        $this->game->states[PERFORM_CONVERT_IDEAS]->skipConvertIdeas();
+        self::ajaxResponse();
+    }
 }
