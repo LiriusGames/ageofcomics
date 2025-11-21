@@ -478,4 +478,18 @@ class AgeOfComics extends Table {
         //
         //
     }
+
+    public function getGenreName($genreId) {
+        // Map IDs to Database Column names
+        // Check your constants.inc.php for exact IDs
+        $genres = [
+            1 => 'crime',
+            2 => 'horror',
+            3 => 'romance',
+            4 => 'scifi',
+            5 => 'superhero',
+            6 => 'western'
+        ];
+        return $genres[$genreId];
+    }
 }
