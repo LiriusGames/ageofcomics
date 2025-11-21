@@ -193,6 +193,7 @@ var GameBody = /** @class */ (function (_super) {
         this.notifqueue.setSynchronous("masteryTokenClaimed", 500);
         this.notifqueue.setSynchronous("placeUpgradeCube", 500);
         this.notifqueue.setSynchronous("salesOrderCollected", 500);
+        this.notifqueue.setSynchronous("gainBetterColorToken", 500);
     };
 
     // --- Notification Handlers ---
